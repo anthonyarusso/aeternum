@@ -53,17 +53,17 @@ fn setup(
             sprite: Sprite::new(Vec2::new(120.0, 30.0)),
             ..Default::default()
         })
-        .with(Paddle { speed: 500.0 })
+        .with(Paddle { speed: 3000.0 })
         .with(Collider::Paddle)
         // ball
         .spawn(SpriteBundle {
-            material: materials.add(Color::rgb(1.0, 0.5, 0.5).into()),
+            material: materials.add(Color::rgb(1.0, 0.0, 0.0).into()),
             transform: Transform::from_translation(Vec3::new(0.0, -50.0, 1.0)),
             sprite: Sprite::new(Vec2::new(30.0, 30.0)),
             ..Default::default()
         })
         .with(Ball {
-            velocity: 400.0 * Vec3::new(0.5, -0.5, 0.0).normalize(),
+            velocity: 1800.0 * Vec3::new(0.5, -0.5, 0.0).normalize(),
         })
         // scoreboard
         .spawn(TextBundle {
@@ -90,7 +90,7 @@ fn setup(
 
     // Add walls
     let wall_material = materials.add(Color::rgb(0.8, 0.8, 0.8).into());
-    let wall_thickness = 10.0;
+    let wall_thickness = 25.0;
     let bounds = Vec2::new(900.0, 600.0);
 
     commands
@@ -182,7 +182,7 @@ fn paddle_movement_system(
 
 fn ball_movement_system(time: Res<Time>, mut ball_query: Query<(&Ball, &mut Transform)>) {
     // clamp the timestep to stop the ball from escaping when the game starts
-    let delta_seconds = f32::min(0.2, time.delta_seconds());
+    let delta_seconds = f32::min(0.8, time.delta_seconds());
 
     for (ball, mut transform) in ball_query.iter_mut() {
         transform.translation += ball.velocity * delta_seconds;
