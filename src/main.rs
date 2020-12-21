@@ -94,30 +94,8 @@ fn setup(
 ) {
     commands
         // 2d camera
-        .spawn(CameraUiBundle::default())
+        .spawn(CameraUiBundle::default());
         // texture
-        .spawn(TextBundle {
-            style: Style {
-                position_type: PositionType::Absolute,
-                position: Rect {
-                    top: Val::Px(5.0),
-                    left: Val::Px(5.0),
-                    ..Default::default()
-                },
-                ..Default::default()
-            },
-            text: Text {
-                value: "FPS:".to_string(),
-                font: asset_server.load("fonts/SourceSansPro-Regular.ttf"),
-                style: TextStyle {
-                    font_size: 24.0,
-                    color: Color::YELLOW,
-                    ..Default::default()
-                },
-            },
-            ..Default::default()
-        })
-        .with(FpsText);
     commands
         .spawn(ButtonBundle {
             style: Style {
@@ -179,11 +157,36 @@ fn setup(
     commands
         .spawn(NodeBundle {
             style: Style {
-                size: Size::new(Val::Px(400.0), Val::Px(400.0)),
-                justify_content: JustifyContent::SpaceBetween,
+                size: Size::new(Val::Px(100.0), Val::Px(30.0)),
+                justify_content: JustifyContent::FlexStart,
+                position_type: PositionType::Absolute,
+                position: Rect {
+                    top: Val::Px(5.0),
+                    left: Val::Px(5.0),
+                    ..Default::default()
+                },
                 ..Default::default()
             },
             material: background_materials.alphadark.clone(), 
             ..Default::default()
-        });
+        })
+        .with_children(|parent| {
+            parent.spawn(TextBundle {
+            style: Style {
+                padding: Rect::all(Val::Auto),
+                ..Default::default()
+            },
+            text: Text {
+                value: "FPS:".to_string(),
+                font: asset_server.load("fonts/SourceSansPro-Regular.ttf"),
+                style: TextStyle {
+                    font_size: 24.0,
+                    color: Color::YELLOW,
+                    ..Default::default()
+                },
+            },
+            ..Default::default()
+            });
+        })
+        .with(FpsText);
 }
