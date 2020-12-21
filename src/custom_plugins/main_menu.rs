@@ -14,17 +14,19 @@ impl Plugin for MainMenuPlugin {
     }
 }
 
+pub const BUTTON_COUNT_MAIN: usize = 4;
+
 fn setup(
     commands: &mut Commands,
     asset_server: Res<AssetServer>,
     button_materials: Res<ButtonMaterials>,
     background_materials: Res<BackgroundMaterials>,
 ) {
-    let button_texts: [&str; 4] = ["New Game", "Load Game", "Credits", "Settings"];
+    let button_texts: [&str; BUTTON_COUNT_MAIN] = ["New Game", "Load Game", "Credits", "Settings"];
     commands
         .spawn(NodeBundle {
             style: Style {
-                size: Size::new(Val::Percent(100.0), Val::Px(72.0)),
+                size: Size::new(Val::Percent(100.0), Val::Px(128.0)),
                 display: Display::Flex,
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
@@ -45,7 +47,7 @@ fn setup(
                     value: "Aeternum".to_string(),
                     font: asset_server.load("fonts/TimesNewRoman.ttf"),
                     style: TextStyle {
-                        font_size: 60.0,
+                        font_size: 114.0,
                         color: Color::GOLD,
                         ..Default::default()
                     },
@@ -70,7 +72,8 @@ fn setup(
             ..Default::default()
         })
         .with_children(|parent| {
-            for i in 0..4 {
+            // Loop through each button and add the correct text from button_texts
+            for i in 0..BUTTON_COUNT_MAIN {
                parent.spawn(ButtonBundle {
                 style: Style {
                     size: Size::new(Val::Px(200.0), Val::Px(65.0)),
