@@ -8,6 +8,7 @@ impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app
             .init_resource::<BackgroundMaterials>()
+            .init_resource::<ButtonMaterials>()
             .add_startup_system(setup.system())
             .add_system(button_system.system());
     }

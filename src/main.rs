@@ -11,6 +11,7 @@ fn main() {
     App::build()
         .add_plugins(DefaultPlugins)
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
+        .add_plugin(custom_plugins::main_menu::MainMenuPlugin)
         .init_resource::<BackgroundMaterials>()
         .add_startup_system(setup.system())
         .add_system(text_update_system.system())
