@@ -144,11 +144,16 @@ fn button_system (
         (&Interaction, &mut Handle<ColorMaterial>, &Children),
         (Mutated<Interaction>, With<Button>),
     >,
+    mut text_query: Query<&mut Text>,
 ) {
-    for (interaction, mut material, _children) in interaction_query.iter_mut() {
+    for (interaction, mut material, children) in interaction_query.iter_mut() {
+        let button_text = text_query.get_mut(children[0]).unwrap();
         match *interaction {
             Interaction::Clicked => {
                 *material = button_materials.pressed.clone();
+                if button_text.value == "New Game".to_string() {
+                    println!("NEW GAME PRESSED");
+                }
             }
             Interaction::Hovered => {
                 *material = button_materials.hovered.clone();
