@@ -22,18 +22,13 @@ fn setup(
 ) {
     let button_texts: [&str; 4] = ["New Game", "Load Game", "Credits", "Settings"];
     commands
-        .spawn(TextBundle {
-            text: Text {
-                value: "Aeternum".to_string(),
-                font: asset_server.load("fonts/TimesNewRoman.ttf"),
-                style: TextStyle {
-                    font_size: 60.0,
-                    color: Color::GOLD,
-                    ..Default::default()
-                },
-                ..Default::default()
-            },
+        .spawn(NodeBundle {
             style: Style {
+                size: Size::new(Val::Percent(100.0), Val::Px(72.0)),
+                display: Display::Flex,
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                align_content: AlignContent::Center,
                 position_type: PositionType::Absolute,
                 position: Rect {
                     top: Val::Px(40.0),
@@ -41,7 +36,23 @@ fn setup(
                 },
                 ..Default::default()
             },
+            material: background_materials.alpha.clone(),
             ..Default::default()
+        })
+        .with_children(|parent| {
+            parent.spawn(TextBundle {
+                text: Text {
+                    value: "Aeternum".to_string(),
+                    font: asset_server.load("fonts/TimesNewRoman.ttf"),
+                    style: TextStyle {
+                        font_size: 60.0,
+                        color: Color::GOLD,
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+                ..Default::default()
+            });
         });
     commands
         .spawn(NodeBundle {
@@ -110,6 +121,7 @@ impl FromResources for ButtonMaterials {
 }
 
 struct BackgroundMaterials {
+    alpha: Handle<ColorMaterial>,
     alphadark: Handle<ColorMaterial>,
 }
 
@@ -117,6 +129,7 @@ impl FromResources for BackgroundMaterials {
     fn from_resources(resources: &Resources) -> Self {
         let mut materials = resources.get_mut::<Assets<ColorMaterial>>().unwrap();
         BackgroundMaterials {
+            alpha: materials.add(Color::rgba(0.0, 0.0, 0.0, 0.0).into()),
             alphadark: materials.add(Color::rgba(0.3, 0.3, 0.3, 0.7).into()),
         }
     }
