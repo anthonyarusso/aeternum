@@ -22,11 +22,36 @@ fn setup(
 ) {
     let button_texts: [&str; 4] = ["New Game", "Load Game", "Credits", "Settings"];
     commands
+        .spawn(TextBundle {
+            text: Text {
+                value: "Aeternum".to_string(),
+                font: asset_server.load("fonts/TimesNewRoman.ttf"),
+                style: TextStyle {
+                    font_size: 60.0,
+                    color: Color::GOLD,
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            style: Style {
+                position_type: PositionType::Absolute,
+                position: Rect {
+                    top: Val::Px(40.0),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+    commands
         .spawn(NodeBundle {
             style: Style {
                 size: Size::new(Val::Percent(35.0), Val::Percent(60.0)),
                 align_items: AlignItems::Baseline,
-                flex_direction: FlexDirection::Column,
+                /* Buttons are added from bottom-to-top. ColumnReverse displays
+                the buttons in reverse order making them appear
+                in the same order as button_texts. */
+                flex_direction: FlexDirection::ColumnReverse,
                 justify_content: JustifyContent::SpaceEvenly,
                 ..Default::default()
             },
