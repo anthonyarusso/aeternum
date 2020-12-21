@@ -7,7 +7,9 @@ pub struct MainMenuPlugin;
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app
-            .add_startup_system(setup.system());
+            .init_resource::<BackgroundMaterials>()
+            .add_startup_system(setup.system())
+            .add_system(button_system.system());
     }
 }
 
@@ -31,7 +33,8 @@ fn setup(
             ..Default::default()
         })
         .with_children(|parent| {
-            parent.spawn(ButtonBundle {
+            for i in 0..4 {
+               parent.spawn(ButtonBundle {
                 style: Style {
                     size: Size::new(Val::Px(200.0), Val::Px(65.0)),
                     margin: Rect {
@@ -48,7 +51,7 @@ fn setup(
             .with_children(|parent| {
                 parent.spawn(TextBundle {
                 text: Text {
-                        value: "Settings".to_string(),
+                        value: button_texts[i].to_string(),
                         font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                         style: TextStyle {
                             font_size: 40.0,
@@ -58,91 +61,8 @@ fn setup(
                     },
                     ..Default::default() 
                 });
-            });
-            parent.spawn(ButtonBundle {
-                style: Style {
-                    size: Size::new(Val::Px(200.0), Val::Px(65.0)),
-                    margin: Rect {
-                        left: Val::Px(20.0),
-                        ..Default::default()
-                    }, 
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::Center,
-                    ..Default::default()
-                },
-                material: button_materials.normal.clone(),
-                ..Default::default()
-            })
-            .with_children(|parent| {
-                parent.spawn(TextBundle {
-                text: Text {
-                        value: "Credits".to_string(),
-                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                        style: TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                            ..Default::default()
-                        },
-                    },
-                    ..Default::default() 
-                });
-            });
-            parent.spawn(ButtonBundle {
-                style: Style {
-                    size: Size::new(Val::Px(200.0), Val::Px(65.0)),
-                    margin: Rect {
-                        left: Val::Px(20.0),
-                        ..Default::default()
-                    }, 
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::Center,
-                    ..Default::default()
-                },
-                material: button_materials.normal.clone(),
-                ..Default::default()
-            }) 
-            .with_children(|parent| {
-                parent.spawn(TextBundle {
-                text: Text {
-                        value: "Load Game".to_string(),
-                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                        style: TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                            ..Default::default()
-                        },
-                    },
-                    ..Default::default() 
-                });
-            });
-            parent.spawn(ButtonBundle {
-                style: Style {
-                    size: Size::new(Val::Px(200.0), Val::Px(65.0)),
-                    margin: Rect {
-                        left: Val::Px(20.0),
-                        ..Default::default()
-                    }, 
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::Center,
-                    ..Default::default()
-                },
-                material: button_materials.normal.clone(),
-                ..Default::default()
-            }) 
-            .with_children(|parent| {
-                parent.spawn(TextBundle {
-                text: Text {
-                        value: "Play Game".to_string(),
-                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                        style: TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                            ..Default::default()
-                        },
-                    },
-                    ..Default::default() 
-                });
-            });
+            }); 
+            }
         });
 }
 
@@ -172,6 +92,28 @@ impl FromResources for BackgroundMaterials {
         let mut materials = resources.get_mut::<Assets<ColorMaterial>>().unwrap();
         BackgroundMaterials {
             alphadark: materials.add(Color::rgba(0.3, 0.3, 0.3, 0.7).into()),
+        }
+    }
+}
+
+fn button_system (
+    button_materials: Res<ButtonMaterials>,
+    mut interaction_query: Query<
+        (&Interaction, &mut Handle<ColorMaterial>, &Children),
+        (Mutated<Interaction>, With<Button>),
+    >,
+) {
+    for (interaction, mut material, _children) in interaction_query.iter_mut() {
+        match *interaction {
+            Interaction::Clicked => {
+                *material = button_materials.pressed.clone();
+            }
+            Interaction::Hovered => {
+                *material = button_materials.hovered.clone();
+            }
+            Interaction::None => {
+                *material = button_materials.normal.clone();
+            }
         }
     }
 }
