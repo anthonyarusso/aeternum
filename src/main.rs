@@ -1,81 +1,87 @@
 use bevy::{
+    diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
     prelude::*,
-    render::pass::ClearColor,
-    sprite::collide_aabb::{collide, Collision},
 };
 
-/// An implementation of the classic game "Breakout"
+/// This example illustrates how to create text and update it in a system. It displays the current FPS in the upper left hand corner.
 fn main() {
     App::build()
         .add_plugins(DefaultPlugins)
-        .add_resource(Scoreboard { score: 0 })
-        .add_resource(ClearColor(Color::rgb(0.9, 0.9, 0.9)))
+        .add_plugin(FrameTimeDiagnosticsPlugin::default())
+        .init_resource::<ButtonMaterials>()
         .add_startup_system(setup.system())
-        .add_system(paddle_movement_system.system())
-        .add_system(ball_collision_system.system())
-        .add_system(ball_movement_system.system())
-        .add_system(scoreboard_system.system())
+        .add_system(text_update_system.system())
+        .add_system(button_system.system())
         .run();
 }
 
-struct Paddle {
-    speed: f32,
+struct ButtonMaterials {
+    normal: Handle<ColorMaterial>,
+    hovered: Handle<ColorMaterial>,
+    pressed: Handle<ColorMaterial>,
 }
 
-struct Ball {
-    velocity: Vec3,
+impl FromResources for ButtonMaterials {
+    fn from_resources(resources: &Resources) -> Self {
+        let mut materials = resources.get_mut::<Assets<ColorMaterial>>().unwrap();
+        ButtonMaterials {
+            normal: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+            hovered: materials.add(Color::rgb(0.25, 0.25, 0.25).into()),
+            pressed: materials.add(Color::rgb(0.35, 0.75, 0.35).into()),
+        }
+    }
 }
 
-struct Scoreboard {
-    score: usize,
+fn button_system (
+    button_materials: Res<ButtonMaterials>,
+    mut interaction_query: Query<
+        (&Interaction, &mut Handle<ColorMaterial>, &Children),
+        (Mutated<Interaction>, With<Button>),
+    >,
+    mut text_query: Query<&mut Text>,
+) {
+    for (interaction, mut material, children) in interaction_query.iter_mut() {
+        let mut text = text_query.get_mut(children[0]).unwrap();
+        match *interaction {
+            Interaction::Clicked => {
+                text.value = "Press".to_string();
+                *material = button_materials.pressed.clone();
+            }
+            Interaction::Hovered => {
+                text.value = "Hover".to_string();
+                *material = button_materials.hovered.clone();
+            }
+            Interaction::None => {
+                text.value = "Button".to_string();
+                *material = button_materials.normal.clone();
+            }
+        }
+    }
 }
 
-enum Collider {
-    Solid,
-    Scorable,
-    Paddle,
+// A unit struct to help identify the FPS UI component, since there may be many Text components
+struct FpsText;
+
+fn text_update_system(diagnostics: Res<Diagnostics>, mut query: Query<&mut Text, With<FpsText>>) {
+    for mut text in query.iter_mut() {
+        if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
+            if let Some(average) = fps.average() {
+                text.value = format!("FPS: {:.2}", average);
+            }
+        }
+    }
 }
 
 fn setup(
     commands: &mut Commands,
-    mut materials: ResMut<Assets<ColorMaterial>>,
     asset_server: Res<AssetServer>,
+    button_materials: Res<ButtonMaterials>,
 ) {
-    // Add the game's entities to our world
     commands
-        // cameras
-        .spawn(Camera2dBundle::default())
+        // 2d camera
         .spawn(CameraUiBundle::default())
-        // paddle
-        .spawn(SpriteBundle {
-            material: materials.add(Color::rgb(0.5, 0.5, 1.0).into()),
-            transform: Transform::from_translation(Vec3::new(0.0, -215.0, 0.0)),
-            sprite: Sprite::new(Vec2::new(120.0, 30.0)),
-            ..Default::default()
-        })
-        .with(Paddle { speed: 3000.0 })
-        .with(Collider::Paddle)
-        // ball
-        .spawn(SpriteBundle {
-            material: materials.add(Color::rgb(1.0, 0.0, 0.0).into()),
-            transform: Transform::from_translation(Vec3::new(0.0, -50.0, 1.0)),
-            sprite: Sprite::new(Vec2::new(30.0, 30.0)),
-            ..Default::default()
-        })
-        .with(Ball {
-            velocity: 1800.0 * Vec3::new(0.5, -0.5, 0.0).normalize(),
-        })
-        // scoreboard
+        // texture
         .spawn(TextBundle {
-            text: Text {
-                font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                value: "Score:".to_string(),
-                style: TextStyle {
-                    color: Color::rgb(0.5, 0.5, 1.0),
-                    font_size: 40.0,
-                    ..Default::default()
-                },
-            },
             style: Style {
                 position_type: PositionType::Absolute,
                 position: Rect {
@@ -85,168 +91,45 @@ fn setup(
                 },
                 ..Default::default()
             },
-            ..Default::default()
-        });
-
-    // Add walls
-    let wall_material = materials.add(Color::rgb(0.8, 0.8, 0.8).into());
-    let wall_thickness = 25.0;
-    let bounds = Vec2::new(900.0, 600.0);
-
-    commands
-        // left
-        .spawn(SpriteBundle {
-            material: wall_material.clone(),
-            transform: Transform::from_translation(Vec3::new(-bounds.x / 2.0, 0.0, 0.0)),
-            sprite: Sprite::new(Vec2::new(wall_thickness, bounds.y + wall_thickness)),
-            ..Default::default()
-        })
-        .with(Collider::Solid)
-        // right
-        .spawn(SpriteBundle {
-            material: wall_material.clone(),
-            transform: Transform::from_translation(Vec3::new(bounds.x / 2.0, 0.0, 0.0)),
-            sprite: Sprite::new(Vec2::new(wall_thickness, bounds.y + wall_thickness)),
-            ..Default::default()
-        })
-        .with(Collider::Solid)
-        // bottom
-        .spawn(SpriteBundle {
-            material: wall_material.clone(),
-            transform: Transform::from_translation(Vec3::new(0.0, -bounds.y / 2.0, 0.0)),
-            sprite: Sprite::new(Vec2::new(bounds.x + wall_thickness, wall_thickness)),
-            ..Default::default()
-        })
-        .with(Collider::Solid)
-        // top
-        .spawn(SpriteBundle {
-            material: wall_material,
-            transform: Transform::from_translation(Vec3::new(0.0, bounds.y / 2.0, 0.0)),
-            sprite: Sprite::new(Vec2::new(bounds.x + wall_thickness, wall_thickness)),
-            ..Default::default()
-        })
-        .with(Collider::Solid);
-
-    // Add bricks
-    let brick_rows = 4;
-    let brick_columns = 5;
-    let brick_spacing = 20.0;
-    let brick_size = Vec2::new(150.0, 30.0);
-    let bricks_width = brick_columns as f32 * (brick_size.x + brick_spacing) - brick_spacing;
-    // center the bricks and move them up a bit
-    let bricks_offset = Vec3::new(-(bricks_width - brick_size.x) / 2.0, 100.0, 0.0);
-    let brick_material = materials.add(Color::rgb(0.5, 0.5, 1.0).into());
-    for row in 0..brick_rows {
-        let y_position = row as f32 * (brick_size.y + brick_spacing);
-        for column in 0..brick_columns {
-            let brick_position = Vec3::new(
-                column as f32 * (brick_size.x + brick_spacing),
-                y_position,
-                0.0,
-            ) + bricks_offset;
-            commands
-                // brick
-                .spawn(SpriteBundle {
-                    material: brick_material.clone(),
-                    sprite: Sprite::new(brick_size),
-                    transform: Transform::from_translation(brick_position),
+            text: Text {
+                value: "FPS:".to_string(),
+                font: asset_server.load("fonts/SourceSansPro-Regular.ttf"),
+                style: TextStyle {
+                    font_size: 24.0,
+                    color: Color::WHITE,
                     ..Default::default()
-                })
-                .with(Collider::Scorable);
-        }
-    }
-}
-
-fn paddle_movement_system(
-    time: Res<Time>,
-    keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<(&Paddle, &mut Transform)>,
-) {
-    for (paddle, mut transform) in query.iter_mut() {
-        let mut direction = 0.0;
-        if keyboard_input.pressed(KeyCode::Left) {
-            direction -= 1.0;
-        }
-
-        if keyboard_input.pressed(KeyCode::Right) {
-            direction += 1.0;
-        }
-
-        let translation = &mut transform.translation;
-        // move the paddle horizontally
-        translation.x += time.delta_seconds() * direction * paddle.speed;
-        // bound the paddle within the walls
-        translation.x = translation.x.min(380.0).max(-380.0);
-    }
-}
-
-fn ball_movement_system(time: Res<Time>, mut ball_query: Query<(&Ball, &mut Transform)>) {
-    // clamp the timestep to stop the ball from escaping when the game starts
-    let delta_seconds = f32::min(0.8, time.delta_seconds());
-
-    for (ball, mut transform) in ball_query.iter_mut() {
-        transform.translation += ball.velocity * delta_seconds;
-    }
-}
-
-fn scoreboard_system(scoreboard: Res<Scoreboard>, mut query: Query<&mut Text>) {
-    for mut text in query.iter_mut() {
-        text.value = format!("Score: {}", scoreboard.score);
-    }
-}
-
-fn ball_collision_system(
-    commands: &mut Commands,
-    mut scoreboard: ResMut<Scoreboard>,
-    mut ball_query: Query<(&mut Ball, &Transform, &Sprite)>,
-    collider_query: Query<(Entity, &Collider, &Transform, &Sprite)>,
-) {
-    for (mut ball, ball_transform, sprite) in ball_query.iter_mut() {
-        let ball_size = sprite.size;
-        let velocity = &mut ball.velocity;
-
-        // check collision with walls
-        for (collider_entity, collider, transform, sprite) in collider_query.iter() {
-            let collision = collide(
-                ball_transform.translation,
-                ball_size,
-                transform.translation,
-                sprite.size,
-            );
-            if let Some(collision) = collision {
-                // scorable colliders should be despawned and increment the scoreboard on collision
-                if let Collider::Scorable = *collider {
-                    scoreboard.score += 1;
-                    commands.despawn(collider_entity);
-                }
-
-                // reflect the ball when it collides
-                let mut reflect_x = false;
-                let mut reflect_y = false;
-
-                // only reflect if the ball's velocity is going in the opposite direction of the collision
-                match collision {
-                    Collision::Left => reflect_x = velocity.x > 0.0,
-                    Collision::Right => reflect_x = velocity.x < 0.0,
-                    Collision::Top => reflect_y = velocity.y < 0.0,
-                    Collision::Bottom => reflect_y = velocity.y > 0.0,
-                }
-
-                // reflect velocity on the x-axis if we hit something on the x-axis
-                if reflect_x {
-                    velocity.x = -velocity.x;
-                }
-
-                // reflect velocity on the y-axis if we hit something on the y-axis
-                if reflect_y {
-                    velocity.y = -velocity.y;
-                }
-
-                // break if this collide is on a solid, otherwise continue check whether a solid is also in collision
-                if let Collider::Solid = *collider {
-                    break;
-                }
-            }
-        }
-    }
+                },
+            },
+            ..Default::default()
+        })
+        .with(FpsText);
+    commands
+        .spawn(ButtonBundle {
+            style: Style {
+                size: Size::new(Val::Px(150.0), Val::Px(65.0)),
+                // center button
+                margin: Rect::all(Val::Auto),
+                // horizontally center child text
+                justify_content: JustifyContent::Center,
+                // vertically center child text
+                align_items: AlignItems::Center,
+                ..Default::default()
+            },
+            material: button_materials.normal.clone(),
+            ..Default::default()
+        })
+        .with_children(|parent| {
+            parent.spawn(TextBundle {
+                text: Text {
+                    value: "Button".to_string(),
+                    font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                    style: TextStyle {
+                        font_size: 40.0,
+                        color: Color::rgb(0.9, 0.9, 0.9),
+                        ..Default::default()
+                    },
+                },
+                ..Default::default()
+            });
+        });
 }
