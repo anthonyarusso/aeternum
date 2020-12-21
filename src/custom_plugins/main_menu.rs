@@ -9,6 +9,7 @@ impl Plugin for MainMenuPlugin {
         app
             .init_resource::<BackgroundMaterials>()
             .init_resource::<ButtonMaterials>()
+            .init_resource::<MainMenuButtons>()
             .add_startup_system(setup.system())
             .add_system(button_system.system());
     }
@@ -138,21 +139,57 @@ impl FromResources for BackgroundMaterials {
     }
 }
 
+struct MenuButton {
+    text: &'static str,
+    // implement a function pointer here so we can pass unique functions to each button
+}
+
+impl MenuButton {
+    fn new(text: &'static str) -> MenuButton {
+        MenuButton {
+            text: text,
+        }
+    }
+}
+
+struct MainMenuButtons {
+    new_game: MenuButton,
+    load_game: MenuButton,
+    credits: MenuButton,
+    settings: MenuButton,
+}
+
+impl FromResources for MainMenuButtons {
+    fn from_resources(resources: &Resources) -> Self {
+        MainMenuButtons {
+            new_game: MenuButton::new("New Game"),
+            load_game: MenuButton::new("Load Game"),
+            credits: MenuButton::new("Credits"),
+            settings: MenuButton::new("Settings"),
+        }
+    }
+}
+// to-do: make this a Resource to properly implement 'button_texts' as a global
+
 fn button_system (
     button_materials: Res<ButtonMaterials>,
     mut interaction_query: Query<
         (&Interaction, &mut Handle<ColorMaterial>, &Children),
         (Mutated<Interaction>, With<Button>),
     >,
-    mut text_query: Query<&mut Text>,
+    text_query: Query<&Text>,
 ) {
     for (interaction, mut material, children) in interaction_query.iter_mut() {
-        let button_text = text_query.get_mut(children[0]).unwrap();
+        let button_text = text_query.get(children[0]).unwrap();
         match *interaction {
             Interaction::Clicked => {
                 *material = button_materials.pressed.clone();
-                if button_text.value == "New Game".to_string() {
-                    println!("NEW GAME PRESSED");
+                let x = button_text.value.as_str();
+                match x {
+                    "New Game" => println!("NEW GAME PRESSED"),
+                    "Load Game" => println!("Loading game..."),
+                    // _ if x == button_texts[1]  => println!("Loading"),
+                    _ => println!("UNKNOWN BUTTON PRESSED"),
                 }
             }
             Interaction::Hovered => {
