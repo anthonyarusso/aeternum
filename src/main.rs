@@ -52,21 +52,16 @@ fn button_system (
         (&Interaction, &mut Handle<ColorMaterial>, &Children),
         (Mutated<Interaction>, With<Button>),
     >,
-    mut text_query: Query<&mut Text>,
 ) {
-    for (interaction, mut material, children) in interaction_query.iter_mut() {
-        let mut text = text_query.get_mut(children[0]).unwrap();
+    for (interaction, mut material, _children) in interaction_query.iter_mut() {
         match *interaction {
             Interaction::Clicked => {
-                text.value = "Press".to_string();
                 *material = button_materials.pressed.clone();
             }
             Interaction::Hovered => {
-                text.value = "Hover".to_string();
                 *material = button_materials.hovered.clone();
             }
             Interaction::None => {
-                text.value = "Button".to_string();
                 *material = button_materials.normal.clone();
             }
         }
@@ -75,7 +70,6 @@ fn button_system (
 
 // A unit struct to help identify the FPS UI component, since there may be many Text components
 struct FpsText;
-struct StartButton;
 
 fn text_update_system(diagnostics: Res<Diagnostics>, mut query: Query<&mut Text, With<FpsText>>) {
     for mut text in query.iter_mut() {
@@ -126,7 +120,7 @@ fn setup(
             .with_children(|parent| {
                 parent.spawn(TextBundle {
                 text: Text {
-                        value: "Start Game".to_string(),
+                        value: "Settings".to_string(),
                         font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                         style: TextStyle {
                             font_size: 40.0,
@@ -154,7 +148,7 @@ fn setup(
             .with_children(|parent| {
                 parent.spawn(TextBundle {
                 text: Text {
-                        value: "Start Game".to_string(),
+                        value: "Credits".to_string(),
                         font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                         style: TextStyle {
                             font_size: 40.0,
@@ -182,7 +176,35 @@ fn setup(
             .with_children(|parent| {
                 parent.spawn(TextBundle {
                 text: Text {
-                        value: "Start Game".to_string(),
+                        value: "Load Game".to_string(),
+                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                        style: TextStyle {
+                            font_size: 40.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                            ..Default::default()
+                        },
+                    },
+                    ..Default::default() 
+                });
+            });
+            parent.spawn(ButtonBundle {
+                style: Style {
+                    size: Size::new(Val::Px(200.0), Val::Px(65.0)),
+                    margin: Rect {
+                        left: Val::Px(20.0),
+                        ..Default::default()
+                    }, 
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    ..Default::default()
+                },
+                material: button_materials.normal.clone(),
+                ..Default::default()
+            }) 
+            .with_children(|parent| {
+                parent.spawn(TextBundle {
+                text: Text {
+                        value: "Play Game".to_string(),
                         font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                         style: TextStyle {
                             font_size: 40.0,
