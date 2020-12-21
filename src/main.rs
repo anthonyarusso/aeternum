@@ -9,6 +9,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .init_resource::<ButtonMaterials>()
+        .init_resource::<BackgroundMaterials>()
         .add_startup_system(setup.system())
         .add_system(text_update_system.system())
         .add_system(button_system.system())
@@ -28,6 +29,19 @@ impl FromResources for ButtonMaterials {
             normal: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
             hovered: materials.add(Color::rgb(0.25, 0.25, 0.25).into()),
             pressed: materials.add(Color::rgb(0.35, 0.75, 0.35).into()),
+        }
+    }
+}
+
+struct BackgroundMaterials {
+    alphadark: Handle<ColorMaterial>,
+}
+
+impl FromResources for BackgroundMaterials {
+    fn from_resources(resources: &Resources) -> Self {
+        let mut materials = resources.get_mut::<Assets<ColorMaterial>>().unwrap();
+        BackgroundMaterials {
+            alphadark: materials.add(Color::rgba(0.3, 0.3, 0.3, 0.7).into()),
         }
     }
 }
@@ -76,6 +90,7 @@ fn setup(
     commands: &mut Commands,
     asset_server: Res<AssetServer>,
     button_materials: Res<ButtonMaterials>,
+    background_materials: Res<BackgroundMaterials>,
 ) {
     commands
         // 2d camera
@@ -96,7 +111,7 @@ fn setup(
                 font: asset_server.load("fonts/SourceSansPro-Regular.ttf"),
                 style: TextStyle {
                     font_size: 24.0,
-                    color: Color::WHITE,
+                    color: Color::YELLOW,
                     ..Default::default()
                 },
             },
@@ -131,5 +146,44 @@ fn setup(
                 },
                 ..Default::default()
             });
+        });
+    commands
+        .spawn(ButtonBundle {
+            style: Style {
+                size: Size::new(Val::Px(150.0), Val::Px(65.0)),
+                // center button
+                margin: Rect::all(Val::Auto),
+                // horizontally center child text
+                justify_content: JustifyContent::Center,
+                // vertically center child text
+                align_items: AlignItems::Center,
+                ..Default::default()
+            },
+            material: button_materials.normal.clone(),
+            ..Default::default()
+        })
+        .with_children(|parent| {
+            parent.spawn(TextBundle {
+                text: Text {
+                    value: "Load Game".to_string(),
+                    font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                    style: TextStyle {
+                        font_size: 40.0,
+                        color: Color::rgb(0.9, 0.9, 0.9),
+                        ..Default::default()
+                    },
+                },
+                ..Default::default()
+            });
+        });
+    commands
+        .spawn(NodeBundle {
+            style: Style {
+                size: Size::new(Val::Px(400.0), Val::Px(400.0)),
+                justify_content: JustifyContent::SpaceBetween,
+                ..Default::default()
+            },
+            material: background_materials.alphadark.clone(), 
+            ..Default::default()
         });
 }
