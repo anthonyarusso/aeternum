@@ -20,10 +20,16 @@ pub const BUTTON_COUNT_MAIN: usize = 4;
 fn setup(
     commands: &mut Commands,
     asset_server: Res<AssetServer>,
+    main_menu_buttons: Res<MainMenuButtons>,
     button_materials: Res<ButtonMaterials>,
     background_materials: Res<BackgroundMaterials>,
 ) {
-    let button_texts: [&str; BUTTON_COUNT_MAIN] = ["New Game", "Load Game", "Credits", "Settings"];
+    // load text from the MainMenuButtons resource into an iterable array
+    let button_texts: [&str; BUTTON_COUNT_MAIN] =
+        [main_menu_buttons.new_game.text,
+        main_menu_buttons.load_game.text,
+        main_menu_buttons.credits.text,
+        main_menu_buttons.settings.text];
     commands
         .spawn(NodeBundle {
             style: Style {
@@ -160,7 +166,7 @@ struct MainMenuButtons {
 }
 
 impl FromResources for MainMenuButtons {
-    fn from_resources(resources: &Resources) -> Self {
+    fn from_resources(_resources: &Resources) -> Self {
         MainMenuButtons {
             new_game: MenuButton::new("New Game"),
             load_game: MenuButton::new("Load Game"),
@@ -172,6 +178,7 @@ impl FromResources for MainMenuButtons {
 // to-do: make this a Resource to properly implement 'button_texts' as a global
 
 fn button_system (
+    main_menu_buttons: Res<MainMenuButtons>,
     button_materials: Res<ButtonMaterials>,
     mut interaction_query: Query<
         (&Interaction, &mut Handle<ColorMaterial>, &Children),
@@ -186,9 +193,10 @@ fn button_system (
                 *material = button_materials.pressed.clone();
                 let x = button_text.value.as_str();
                 match x {
-                    "New Game" => println!("NEW GAME PRESSED"),
-                    "Load Game" => println!("Loading game..."),
-                    // _ if x == button_texts[1]  => println!("Loading"),
+                    _ if x == main_menu_buttons.new_game.text => println!("New game"),
+                    _ if x == main_menu_buttons.load_game.text => println!("Loading game..."),
+                    _ if x == main_menu_buttons.credits.text => println!("Made by ur mom, lol"),
+                    _ if x == main_menu_buttons.settings.text => println!("Settings"),
                     _ => println!("UNKNOWN BUTTON PRESSED"),
                 }
             }
