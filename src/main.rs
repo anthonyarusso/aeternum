@@ -75,6 +75,7 @@ fn button_system (
 
 // A unit struct to help identify the FPS UI component, since there may be many Text components
 struct FpsText;
+struct StartButton;
 
 fn text_update_system(diagnostics: Res<Diagnostics>, mut query: Query<&mut Text, With<FpsText>>) {
     for mut text in query.iter_mut() {
@@ -95,63 +96,102 @@ fn setup(
     commands
         // 2d camera
         .spawn(CameraUiBundle::default());
-        // texture
     commands
-        .spawn(ButtonBundle {
+        .spawn(NodeBundle {
             style: Style {
-                size: Size::new(Val::Px(150.0), Val::Px(65.0)),
-                // center button
-                margin: Rect::all(Val::Auto),
-                // horizontally center child text
-                justify_content: JustifyContent::Center,
-                // vertically center child text
-                align_items: AlignItems::Center,
+                size: Size::new(Val::Percent(35.0), Val::Percent(60.0)),
+                align_items: AlignItems::Baseline,
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::SpaceEvenly,
                 ..Default::default()
             },
-            material: button_materials.normal.clone(),
+            material: background_materials.alphadark.clone(),
             ..Default::default()
         })
         .with_children(|parent| {
-            parent.spawn(TextBundle {
-                text: Text {
-                    value: "Button".to_string(),
-                    font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                    style: TextStyle {
-                        font_size: 40.0,
-                        color: Color::rgb(0.9, 0.9, 0.9),
+            parent.spawn(ButtonBundle {
+                style: Style {
+                    size: Size::new(Val::Px(200.0), Val::Px(65.0)),
+                    margin: Rect {
+                        left: Val::Px(20.0),
                         ..Default::default()
-                    },
+                    }, 
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    ..Default::default()
                 },
+                material: button_materials.normal.clone(),
                 ..Default::default()
+            })
+            .with_children(|parent| {
+                parent.spawn(TextBundle {
+                text: Text {
+                        value: "Start Game".to_string(),
+                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                        style: TextStyle {
+                            font_size: 40.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                            ..Default::default()
+                        },
+                    },
+                    ..Default::default() 
+                });
             });
-        });
-    commands
-        .spawn(ButtonBundle {
-            style: Style {
-                size: Size::new(Val::Px(150.0), Val::Px(65.0)),
-                // center button
-                margin: Rect::all(Val::Auto),
-                // horizontally center child text
-                justify_content: JustifyContent::Center,
-                // vertically center child text
-                align_items: AlignItems::Center,
-                ..Default::default()
-            },
-            material: button_materials.normal.clone(),
-            ..Default::default()
-        })
-        .with_children(|parent| {
-            parent.spawn(TextBundle {
-                text: Text {
-                    value: "Load Game".to_string(),
-                    font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                    style: TextStyle {
-                        font_size: 40.0,
-                        color: Color::rgb(0.9, 0.9, 0.9),
+            parent.spawn(ButtonBundle {
+                style: Style {
+                    size: Size::new(Val::Px(200.0), Val::Px(65.0)),
+                    margin: Rect {
+                        left: Val::Px(20.0),
                         ..Default::default()
-                    },
+                    }, 
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    ..Default::default()
                 },
+                material: button_materials.normal.clone(),
                 ..Default::default()
+            })
+            .with_children(|parent| {
+                parent.spawn(TextBundle {
+                text: Text {
+                        value: "Start Game".to_string(),
+                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                        style: TextStyle {
+                            font_size: 40.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                            ..Default::default()
+                        },
+                    },
+                    ..Default::default() 
+                });
+            });
+            parent.spawn(ButtonBundle {
+                style: Style {
+                    size: Size::new(Val::Px(200.0), Val::Px(65.0)),
+                    margin: Rect {
+                        left: Val::Px(20.0),
+                        ..Default::default()
+                    }, 
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    ..Default::default()
+                },
+                material: button_materials.normal.clone(),
+                ..Default::default()
+            }) 
+            .with_children(|parent| {
+                parent.spawn(TextBundle {
+                text: Text {
+                        value: "Start Game".to_string(),
+                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                        style: TextStyle {
+                            font_size: 40.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                            ..Default::default()
+                        },
+                    },
+                    ..Default::default() 
+                });
             });
         });
     commands
@@ -186,7 +226,7 @@ fn setup(
                 },
             },
             ..Default::default()
-            });
-        })
-        .with(FpsText);
+            })
+            .with(FpsText);
+        });
 }
