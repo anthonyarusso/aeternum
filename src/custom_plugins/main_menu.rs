@@ -178,6 +178,7 @@ impl FromResources for MainMenuButtons {
 // to-do: make this a Resource to properly implement 'button_texts' as a global
 
 fn button_system (
+    commands: &mut Commands,
     main_menu_buttons: Res<MainMenuButtons>,
     button_materials: Res<ButtonMaterials>,
     mut interaction_query: Query<
@@ -196,7 +197,8 @@ fn button_system (
                     _ if x == main_menu_buttons.new_game.text => println!("New game"),
                     _ if x == main_menu_buttons.load_game.text => println!("Loading game..."),
                     _ if x == main_menu_buttons.credits.text => println!("Made by ur mom, lol"),
-                    _ if x == main_menu_buttons.settings.text => println!("Settings"),
+                    _ if x == main_menu_buttons.settings.text =>
+                        display_main_settings(commands),
                     _ => println!("UNKNOWN BUTTON PRESSED"),
                 }
             }
@@ -208,4 +210,20 @@ fn button_system (
             }
         }
     }
+}
+
+fn display_main_settings(commands: &mut Commands) {
+    commands
+        .spawn(NodeBundle {
+            style: Style {
+                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                position_type: PositionType::Absolute,
+                position: Rect {
+                    top: Val::Px(0.0),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            ..Default::default()
+        });    
 }
