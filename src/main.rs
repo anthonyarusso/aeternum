@@ -13,6 +13,7 @@ fn main() {
         .on_state_enter(STAGE, AppState::InGame, setup_game.system())
         .on_state_update(STAGE, AppState::InGame, movement.system())
         .on_state_update(STAGE, AppState::InGame, change_color.system())
+        .on_state_exit(STAGE, AppState::InGame, cleanup_game.system())
         .run();
 }
 
@@ -26,6 +27,10 @@ enum AppState {
 
 struct MenuData {
     button_entity: Entity,
+}
+
+struct GameData {
+    sprite_entity: Entity,
 }
 
 fn setup_menu(
@@ -109,10 +114,19 @@ fn setup_game(
             material: materials.add(texture_handle.into()),
             ..Default::default()
         });
+    commands
+        .insert_resource(GameData {
+           sprite_entity: commands.current_entity().unwrap(), 
+        });
+}
+
+fn cleanup_game(commands: &mut Commands, game_data: Res<GameData>) {
+    commands.despawn_recursive(game_data.sprite_entity);
 }
 
 const SPEED: f32 = 900.0;
 fn movement(
+    mut state: ResMut<State<AppState>>,
     time: Res<Time>,
     input: Res<Input<KeyCode>>,
     mut query: Query<&mut Transform, With<Sprite>>,
@@ -130,6 +144,9 @@ fn movement(
         }
         if input.pressed(KeyCode::Down) {
             direction.y -= 1.0;
+        }
+        if input.pressed(KeyCode::Escape) {
+           state.set_next(AppState::Menu).unwrap(); 
         }
 
         if direction != Vec3::default() {
