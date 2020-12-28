@@ -25,8 +25,14 @@ enum AppState {
     InGame,
 }
 
+/*
 struct MenuData {
     button_entity: Entity,
+}
+*/
+
+struct MainMenuEntity {
+    main_entity: Entity,
 }
 
 struct GameData {
@@ -40,8 +46,8 @@ fn setup_menu(
 ) {
     commands
         // ui camera
-        .spawn(CameraUiBundle::default())
-        .spawn(ButtonBundle {
+        .spawn(CameraUiBundle::default());
+        /* .spawn(ButtonBundle {
             style: Style {
                 size: Size::new(Val::Px(150.0), Val::Px(65.0)),
                 // center button
@@ -71,6 +77,47 @@ fn setup_menu(
         });
     commands.insert_resource(MenuData {
         button_entity: commands.current_entity().unwrap(),
+    });*/
+    commands
+        .spawn(NodeBundle {
+            style: Style {
+                size: Size::new(Val::Percent(80.0), Val::Percent(80.0)),
+                margin: Rect::all(Val::Auto),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .with_children(|parent| {
+            parent.spawn(ButtonBundle {
+                style: Style {
+                    size: Size::new(Val::Px(150.0), Val::Px(65.0)),
+                    margin: Rect::all(Val::Auto),
+                    justify_content: JustifyContent::Center,
+                    align_items:AlignItems::Center,
+                    ..Default::default()
+                },
+                material: button_materials.normal.clone(),
+                ..Default::default()
+            })
+            .with_children(|parent| {
+                parent.spawn(TextBundle {
+                    text: Text {
+                        value: "Menu".to_string(),
+                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                        style: TextStyle {
+                            font_size: 40.0,
+                            color: Color::rgb(1.0, 1.0, 1.0),
+                            ..Default::default()
+                        },
+                    },
+                    ..Default::default()
+                });
+            });
+        });
+    commands.insert_resource(MainMenuEntity {
+        main_entity: commands.current_entity().unwrap(),
     });
 }
 
@@ -98,8 +145,14 @@ fn menu(
     }
 }
 
+/*
 fn cleanup_menu(commands: &mut Commands, menu_data: Res<MenuData>) {
     commands.despawn_recursive(menu_data.button_entity);
+}
+*/
+
+fn cleanup_menu(commands: &mut Commands, menu_data: Res<MainMenuEntity>) {
+    commands.despawn_recursive(menu_data.main_entity);
 }
 
 fn setup_game(
