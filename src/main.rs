@@ -5,10 +5,12 @@ use bevy::{
     // utils::Duration,
 };
 
-/// This example illustrates how to use States to control transitioning from a Menu state to an InGame state.
+mod custom_plugins;
+
 fn main() {
     App::build()
         .add_plugins(DefaultPlugins)
+        .add_plugin(custom_plugins::main_menu::MainMenuPlugin)
         .init_resource::<ButtonMaterials>()
         .add_resource(State::new(AppState::Menu))
         .add_stage_after(stage::UPDATE, STAGE, StateStage::<AppState>::default())
@@ -44,39 +46,7 @@ fn setup_menu(
     button_materials: Res<ButtonMaterials>,
 ) {
     commands
-        // ui camera
         .spawn(CameraUiBundle::default());
-        /* .spawn(ButtonBundle {
-            style: Style {
-                size: Size::new(Val::Px(150.0), Val::Px(65.0)),
-                // center button
-                margin: Rect::all(Val::Auto),
-                // horizontally center child text
-                justify_content: JustifyContent::Center,
-                // vertically center child text
-                align_items: AlignItems::Center,
-                ..Default::default()
-            },
-            material: button_materials.normal.clone(),
-            ..Default::default()
-        })
-        .with_children(|parent| {
-            parent.spawn(TextBundle {
-                text: Text {
-                    value: "Play".to_string(),
-                    font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                    style: TextStyle {
-                        font_size: 40.0,
-                        color: Color::rgb(0.9, 0.9, 0.9),
-                        ..Default::default()
-                    },
-                },
-                ..Default::default()
-            });
-        });
-    commands.insert_resource(MenuData {
-        button_entity: commands.current_entity().unwrap(),
-    });*/
     commands
         .spawn(NodeBundle {
             style: Style {
@@ -84,7 +54,7 @@ fn setup_menu(
                 margin: Rect::all(Val::Auto),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
-                flex_direction: FlexDirection::Column,
+                flex_direction: FlexDirection::ColumnReverse,
                 ..Default::default()
             },
             ..Default::default()
@@ -104,7 +74,7 @@ fn setup_menu(
             .with_children(|parent| {
                 parent.spawn(TextBundle {
                     text: Text {
-                        value: "Exit Game".to_string(),
+                        value: "Resume Game".to_string(),
                         font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                         style: TextStyle {
                             font_size: 40.0,
@@ -129,7 +99,7 @@ fn setup_menu(
             .with_children(|parent| {
                 parent.spawn(TextBundle {
                     text: Text {
-                        value: "Resume Game".to_string(),
+                        value: "Exit Game".to_string(),
                         font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                         style: TextStyle {
                             font_size: 40.0,
@@ -176,12 +146,6 @@ fn menu(
         }
     }
 }
-
-/*
-fn cleanup_menu(commands: &mut Commands, menu_data: Res<MenuData>) {
-    commands.despawn_recursive(menu_data.button_entity);
-}
-*/
 
 fn cleanup_menu(commands: &mut Commands, menu_data: Res<MainMenuEntity>) {
     commands.despawn_recursive(menu_data.main_entity);
