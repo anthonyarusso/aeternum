@@ -1,4 +1,9 @@
-use bevy::prelude::*;
+use bevy::{
+    // app::{AppExit, ScheduleRunnerPlugin, ScheduleRunnerSettings},
+    // ecs::SystemStage,
+    prelude::*,
+    // utils::Duration,
+};
 
 /// This example illustrates how to use States to control transitioning from a Menu state to an InGame state.
 fn main() {
@@ -24,12 +29,6 @@ enum AppState {
     Menu,
     InGame,
 }
-
-/*
-struct MenuData {
-    button_entity: Entity,
-}
-*/
 
 struct MainMenuEntity {
     main_entity: Entity,
@@ -151,15 +150,21 @@ fn menu(
     mut state: ResMut<State<AppState>>,
     button_materials: Res<ButtonMaterials>,
     mut interaction_query: Query<
-        (&Interaction, &mut Handle<ColorMaterial>),
+        (&Interaction, &mut Handle<ColorMaterial>, &Children),
         (Mutated<Interaction>, With<Button>),
     >,
+    mut text_query: Query<&mut Text>,
 ) {
-    for (interaction, mut material) in interaction_query.iter_mut() {
+    for (interaction, mut material, children) in interaction_query.iter_mut() {
+        let text = text_query.get_mut(children[0]).unwrap();
         match *interaction {
             Interaction::Clicked => {
                 *material = button_materials.pressed.clone();
-                state.set_next(AppState::InGame).unwrap();
+                if text.value == "Resume Game".to_string() {
+                    state.set_next(AppState::InGame).unwrap();
+                } else if text.value == "Exit Game".to_string() {
+                    println!("AAAAAAAAAAAH!");
+                }
             }
             Interaction::Hovered => {
                 *material = button_materials.hovered.clone();
