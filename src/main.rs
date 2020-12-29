@@ -1,5 +1,5 @@
 use bevy::{
-    // app::{AppExit, ScheduleRunnerPlugin, ScheduleRunnerSettings},
+    app::{AppExit, ScheduleRunnerPlugin, ScheduleRunnerSettings},
     // ecs::SystemStage,
     prelude::*,
     // utils::Duration,
@@ -154,6 +154,7 @@ fn menu(
         (Mutated<Interaction>, With<Button>),
     >,
     mut text_query: Query<&mut Text>,
+    mut app_exit_events: ResMut<Events<AppExit>>,
 ) {
     for (interaction, mut material, children) in interaction_query.iter_mut() {
         let text = text_query.get_mut(children[0]).unwrap();
@@ -163,7 +164,7 @@ fn menu(
                 if text.value == "Resume Game".to_string() {
                     state.set_next(AppState::InGame).unwrap();
                 } else if text.value == "Exit Game".to_string() {
-                    println!("AAAAAAAAAAAH!");
+                    app_exit_events.send(AppExit);
                 }
             }
             Interaction::Hovered => {
