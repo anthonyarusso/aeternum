@@ -4,14 +4,15 @@ use bevy::{
     prelude:: *,
 };
 
+use crate::custom_resources::materials;
+
 pub struct MainMenuPlugin;
 
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app
-            // .add_startup_system(setup.system());
             .add_resource(State::new(AppState::Menu))
-            .init_resource::<ButtonMaterials>()
+            .init_resource::<materials::ButtonMaterials>()
             .add_stage_after(stage::UPDATE, STAGE, StateStage::<AppState>::default())
             .on_state_enter(STAGE, AppState::Menu, setup_menu.system())
             .on_state_update(STAGE, AppState::Menu, menu.system())
@@ -22,14 +23,6 @@ impl Plugin for MainMenuPlugin {
             .on_state_exit(STAGE, AppState::InGame, cleanup_game.system());
     }
 }
-
-/*
-fn setup(
-    // commands: &mut Commands,
-) {
-    println!("MainMenuPlugin successfully loaded.");
-}
-*/
 
 const STAGE: &str = "app_state";
 
@@ -50,7 +43,7 @@ struct GameData {
 fn setup_menu(
     commands: &mut Commands,
     asset_server: Res<AssetServer>,
-    button_materials: Res<ButtonMaterials>,
+    button_materials: Res<materials::ButtonMaterials>,
 ) {
     commands
         .spawn(CameraUiBundle::default());
@@ -125,7 +118,7 @@ fn setup_menu(
 
 fn menu(
     mut state: ResMut<State<AppState>>,
-    button_materials: Res<ButtonMaterials>,
+    button_materials: Res<materials::ButtonMaterials>,
     mut interaction_query: Query<
         (&Interaction, &mut Handle<ColorMaterial>, &Children),
         (Mutated<Interaction>, With<Button>),
@@ -221,21 +214,5 @@ fn change_color(
         material
             .color
             .set_b((time.seconds_since_startup() * 5.0).sin() as f32 + 2.0);
-    }
-}
-struct ButtonMaterials {
-    normal: Handle<ColorMaterial>,
-    hovered: Handle<ColorMaterial>,
-    pressed: Handle<ColorMaterial>,
-}
-
-impl FromResources for ButtonMaterials {
-    fn from_resources(resources: &Resources) -> Self {
-        let mut materials = resources.get_mut::<Assets<ColorMaterial>>().unwrap();
-        ButtonMaterials {
-            normal: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
-            hovered: materials.add(Color::rgb(0.25, 0.25, 0.25).into()),
-            pressed: materials.add(Color::rgb(0.35, 0.75, 0.35).into()),
-        }
     }
 }
