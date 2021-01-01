@@ -5,6 +5,8 @@ use bevy::{
     prelude:: *,
 };
 
+use std::fmt;
+
 use crate::custom_resources::materials;
 
 pub struct MainMenuPlugin;
@@ -36,7 +38,7 @@ impl Plugin for MainMenuPlugin {
 
 const STAGE: &str = "app_state";
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 enum AppState {
     MainMenu,
     PauseMenu,
@@ -45,6 +47,7 @@ enum AppState {
 }
 
 const HISTORY_SIZE: usize = 5;
+
 struct StateHistory {
     history: [AppState; HISTORY_SIZE],
     count: usize,
@@ -56,6 +59,15 @@ impl FromResources for StateHistory {
             history: [AppState::MainMenu; HISTORY_SIZE],
             count: 0,
         }
+    }
+}
+
+impl fmt::Debug for StateHistory {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("StateHistory")
+         .field("history", &self.history)
+         .field("count", &self.count)
+         .finish()
     }
 }
 
@@ -412,7 +424,6 @@ fn pause_menu(
     asset_server: Res<AssetServer>,
     audio: Res<Audio>,
     menu_options: Res<MenuOptions>,
-    history: Res<StateHistory>,
 ) {
     let button_click = asset_server.load("audio/sounds/click.mp3");
     for (interaction, mut material, children) in interaction_query.iter_mut() {
@@ -424,10 +435,9 @@ fn pause_menu(
                 if text.value == menu_options.pause[0].to_string() {
                     state.set_next(AppState::InGame).unwrap();
                 } else if text.value == menu_options.pause[1].to_string() {
-                    state.set_next(AppState::SettingsMenu).unwrap()
+                    state.set_next(AppState::SettingsMenu).unwrap();
                 } else if text.value == menu_options.pause[2].to_string() {
-                    // previous menu
-                    state.set_next(AppState::MainMenu).unwrap()
+                    state.set_next(AppState::MainMenu).unwrap();
                 } else if text.value == menu_options.pause[3].to_string() {
                     app_exit_events.send(AppExit);
                 } else {
@@ -455,6 +465,7 @@ fn settings_menu(
     asset_server: Res<AssetServer>,
     audio: Res<Audio>,
     menu_options: Res<MenuOptions>,
+    mut history: ResMut<StateHistory>,
 ) {
     let button_click = asset_server.load("audio/sounds/click.mp3");
     for (interaction, mut material, children) in interaction_query.iter_mut() {
@@ -466,7 +477,7 @@ fn settings_menu(
                 if text.value == menu_options.settings[0].to_string() {
                     println!("Display Accessibility Settings");
                 } else if text.value == menu_options.settings[5].to_string() {
-                    state.set_next(AppState::PauseMenu).unwrap();
+                    state.set_next(history.prev()).unwrap();
                 } else {
                     println!("Clicky clack");
                 }
@@ -511,7 +522,9 @@ fn setup_game(
     commands: &mut Commands,
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut history: ResMut<StateHistory>,
 ) {
+    history.clear();
     let texture_handle = asset_server.load("images/main_menu/ancient_rome.png");
     commands
         .spawn(Camera2dBundle::default())
