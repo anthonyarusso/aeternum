@@ -154,6 +154,7 @@ fn setup_settings_menu(
     commands: &mut Commands,
     asset_server: Res<AssetServer>,
     button_materials: Res<materials::ButtonMaterials>,
+    menu_options: Res<MenuOptions>,
 ) {
     commands
         .spawn(NodeBundle {
@@ -168,81 +169,33 @@ fn setup_settings_menu(
             ..Default::default()
         })
         .with_children(|parent| {
-            parent.spawn(ButtonBundle {
-                style: Style {
-                    size: Size::new(Val::Px(250.0), Val::Px(65.0)),
-                    margin: Rect::all(Val::Px(25.0)),
-                    justify_content: JustifyContent::Center,
-                    align_items:AlignItems::Center,
-                    ..Default::default()
-                },
-                material: button_materials.normal.clone(),
-                ..Default::default()
-            })
-            .with_children(|parent| {
-                parent.spawn(TextBundle {
-                    text: Text {
-                        value: "Settings".to_string(),
-                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                        style: TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(1.0, 1.0, 1.0),
-                            ..Default::default()
-                        },
+            for i in 0..menu_options.settings.len() {
+                parent.spawn(ButtonBundle {
+                    style: Style {
+                        size: Size::new(Val::Px(250.0), Val::Px(65.0)),
+                        margin: Rect::all(Val::Px(25.0)),
+                        justify_content: JustifyContent::Center,
+                        align_items:AlignItems::Center,
+                        ..Default::default()
                     },
+                    material: button_materials.normal.clone(),
                     ..Default::default()
-                });
-            });
-            parent.spawn(ButtonBundle {
-                style: Style {
-                    size: Size::new(Val::Px(250.0), Val::Px(65.0)),
-                    margin: Rect::all(Val::Px(25.0)),
-                    justify_content: JustifyContent::Center,
-                    align_items:AlignItems::Center,
-                    ..Default::default()
-                },
-                material: button_materials.normal.clone(),
-                ..Default::default()
-            })
-            .with_children(|parent| {
-                parent.spawn(TextBundle {
-                    text: Text {
-                        value: "More Settings".to_string(),
-                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                        style: TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(1.0, 1.0, 1.0),
-                            ..Default::default()
+                })
+                .with_children(|parent| {
+                    parent.spawn(TextBundle {
+                        text: Text {
+                            value: menu_options.settings[i].to_string(),
+                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                            style: TextStyle {
+                                font_size: 40.0,
+                                color: Color::rgb(1.0, 1.0, 1.0),
+                                ..Default::default()
+                            },
                         },
-                    },
-                    ..Default::default()
-                });
-            });
-            parent.spawn(ButtonBundle {
-                style: Style {
-                    size: Size::new(Val::Px(250.0), Val::Px(65.0)),
-                    margin: Rect::all(Val::Px(25.0)),
-                    justify_content: JustifyContent::Center,
-                    align_items:AlignItems::Center,
-                    ..Default::default()
-                },
-                material: button_materials.normal.clone(),
-                ..Default::default()
-            })
-            .with_children(|parent| {
-                parent.spawn(TextBundle {
-                    text: Text {
-                        value: "Main Menu".to_string(),
-                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                        style: TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(1.0, 1.0, 1.0),
-                            ..Default::default()
-                        },
-                    },
-                    ..Default::default()
-                });
-            });
+                        ..Default::default()
+                    });
+                }); 
+            } // end for-loop
         });
     commands.insert_resource(SettingsMenuEntity {
         main_entity: commands.current_entity().unwrap(),
@@ -301,6 +254,7 @@ fn settings_menu(
     mut text_query: Query<&mut Text>,
     asset_server: Res<AssetServer>,
     audio: Res<Audio>,
+    menu_options: Res<MenuOptions>,
 ) {
     let button_click = asset_server.load("audio/sounds/click.mp3");
     for (interaction, mut material, children) in interaction_query.iter_mut() {
@@ -309,9 +263,9 @@ fn settings_menu(
             Interaction::Clicked => {
                 *material = button_materials.pressed.clone();
                 audio.play(button_click.clone());
-                if text.value == "Settings".to_string() {
-                    state.set_next(AppState::InGame).unwrap();
-                } else if text.value == "Main Menu".to_string() {
+                if text.value == menu_options.settings[0].to_string() {
+                    println!("Display Accessibility Settings");
+                } else if text.value == menu_options.settings[5].to_string() {
                     state.set_next(AppState::Menu).unwrap();
                 } else {
                     println!("Clicky clack");
