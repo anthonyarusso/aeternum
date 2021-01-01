@@ -260,6 +260,7 @@ fn menu(
     mut app_exit_events: ResMut<Events<AppExit>>,
     asset_server: Res<AssetServer>,
     audio: Res<Audio>,
+    menu_options: Res<MenuOptions>,
 ) {
     let button_click = asset_server.load("audio/sounds/click.mp3");
     for (interaction, mut material, children) in interaction_query.iter_mut() {
@@ -268,12 +269,14 @@ fn menu(
             Interaction::Clicked => {
                 *material = button_materials.pressed.clone();
                 audio.play(button_click.clone());
-                if text.value == "Resume Game".to_string() {
+                if text.value == menu_options.main[0].to_string() {
                     state.set_next(AppState::InGame).unwrap();
-                } else if text.value == "Exit Game".to_string() {
-                    app_exit_events.send(AppExit);
-                } else if text.value == "Settings".to_string() {
+                } else if text.value == menu_options.main[1].to_string() {
                     state.set_next(AppState::SettingsMenu).unwrap()
+                } else if text.value == menu_options.main[2].to_string() {
+                    println!("Display Main Menu");
+                } else if text.value == menu_options.main[3].to_string() {
+                    app_exit_events.send(AppExit);
                 } else {
                     println!("Mama mia!");
                 }
