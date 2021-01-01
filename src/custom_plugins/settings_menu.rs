@@ -21,7 +21,7 @@ impl Plugin for MainMenuPlugin {
             .on_state_exit(STAGE, AppState::Menu, cleanup_menu.system())
             .on_state_enter(STAGE, AppState::SettingsMenu, setup_settings_menu.system())
             .on_state_update(STAGE, AppState::SettingsMenu, settings_menu.system())
-            .on_state_exit(STAGE, AppState::SettingsMenu, cleanup_settings_menu.system())           .on_state_enter(STAGE, AppState::InGame, setup_game.system())
+            .on_state_enter(STAGE, AppState::InGame, setup_game.system())
             .on_state_update(STAGE, AppState::InGame, movement.system())
             .on_state_update(STAGE, AppState::InGame, change_color.system())
             .on_state_exit(STAGE, AppState::InGame, cleanup_game.system());
@@ -38,7 +38,7 @@ enum AppState {
 }
 
 struct SettingsMenuEntity {
-    main_entity: Entity,
+    settings_entity: Entity,
 }
 
 struct MainMenuEntity {
@@ -135,31 +135,6 @@ fn setup_menu(
             .with_children(|parent| {
                 parent.spawn(TextBundle {
                     text: Text {
-                        value: "Settings".to_string(),
-                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                        style: TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(1.0, 1.0, 1.0),
-                            ..Default::default()
-                        },
-                    },
-                    ..Default::default()
-                });
-            });
-            parent.spawn(ButtonBundle {
-                style: Style {
-                    size: Size::new(Val::Px(250.0), Val::Px(65.0)),
-                    margin: Rect::all(Val::Px(25.0)),
-                    justify_content: JustifyContent::Center,
-                    align_items:AlignItems::Center,
-                    ..Default::default()
-                },
-                material: button_materials.normal.clone(),
-                ..Default::default()
-            })
-            .with_children(|parent| {
-                parent.spawn(TextBundle {
-                    text: Text {
                         value: "Exit Game".to_string(),
                         font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                         style: TextStyle {
@@ -183,6 +158,8 @@ fn setup_settings_menu(
     asset_server: Res<AssetServer>,
     button_materials: Res<materials::ButtonMaterials>,
 ) {
+    commands
+        .spawn(CameraUiBundle::default());
     commands
         .spawn(NodeBundle {
             style: Style {
@@ -272,7 +249,7 @@ fn setup_settings_menu(
                 });
             });
         });
-    commands.insert_resource(SettingsMenuEntity {
+    commands.insert_resource(MainMenuEntity {
         main_entity: commands.current_entity().unwrap(),
     });
 }
@@ -300,8 +277,6 @@ fn menu(
                     state.set_next(AppState::InGame).unwrap();
                 } else if text.value == "Exit Game".to_string() {
                     app_exit_events.send(AppExit);
-                } else if text.value == "Settings".to_string() {
-                    state.set_next(AppState::SettingsMenu).unwrap()
                 } else {
                     println!("Mama mia!");
                 }
@@ -335,9 +310,8 @@ fn settings_menu(
                 *material = button_materials.pressed.clone();
                 audio.play(button_click.clone());
                 if text.value == "Settings".to_string() {
-                    println!("He has been cheated");
                     state.set_next(AppState::InGame).unwrap();
-                } else if text.value == "Main Menu".to_string() {
+                } else if text.value == "Exit Game".to_string() {
                     state.set_next(AppState::Menu).unwrap();
                 } else {
                     println!("Clicky clack");
@@ -351,10 +325,6 @@ fn settings_menu(
             }
         }
     }
-}
-
-fn cleanup_settings_menu(commands: &mut Commands, menu_data: Res<SettingsMenuEntity>) {
-    commands.despawn_recursive(menu_data.main_entity);
 }
 
 fn cleanup_menu(commands: &mut Commands, menu_data: Res<MainMenuEntity>) {
