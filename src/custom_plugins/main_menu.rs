@@ -17,6 +17,7 @@ impl Plugin for MainMenuPlugin {
             .init_resource::<materials::ButtonMaterials>()
             .init_resource::<GlobalCounters>()
             .init_resource::<MenuOptions>()
+            .init_resource::<StateHistory>()
             .add_stage_after(stage::UPDATE, STAGE, StateStage::<AppState>::default())
             .on_state_enter(STAGE, AppState::MainMenu, setup_menu.system())
             .on_state_update(STAGE, AppState::MainMenu, menu.system())
@@ -35,12 +36,69 @@ impl Plugin for MainMenuPlugin {
 
 const STAGE: &str = "app_state";
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 enum AppState {
     MainMenu,
     PauseMenu,
     SettingsMenu,
     InGame,
+}
+
+const HISTORY_SIZE: usize = 5;
+struct StateHistory {
+    history: [AppState; HISTORY_SIZE],
+    count: usize,
+}
+
+impl FromResources for StateHistory {
+    fn from_resources(_resources: &Resources) -> Self {
+        StateHistory {
+            history: [AppState::MainMenu; HISTORY_SIZE],
+            count: 0,
+        }
+    }
+}
+
+impl StateHistory {
+    fn clear(&mut self) {
+        for i in 0..HISTORY_SIZE {
+            self.history[i] = AppState::MainMenu;
+        }
+        self.count = 0;
+    }
+    fn pop(&mut self, count: usize) {
+        if self.count - count <= 0 {
+            self.clear();
+        } else {
+            let temp_history = self.history.clone();
+            for i in 0..count {
+                self.history[i] = AppState::MainMenu;
+            }
+            /* the following copies the history before the pop and
+            reinserts the non-popped values at the 'front' of the
+            history array starting at index 0 */
+            let mut j = 0;
+            for i in (count + 1)..self.count {
+                self.history[j] = temp_history[i];
+                j += 1;
+            }
+            self.count -= count;
+        }
+    }
+    fn prev(&self, steps: usize) -> AppState {
+        if self.count == 0 {
+            eprintln!("StateHistory.prev() Error: No previous history.");
+            AppState::MainMenu
+        } else if steps == 0 {
+            eprintln!("StateHistory.prev() Error: Zero is an invalid input.");
+            AppState::MainMenu
+        } else if steps <= self.count {
+            self.history[steps]
+        } else {
+            eprintln!("StateHistory.prev() Error: History does not exist.");
+            AppState::MainMenu
+        }
+    }
 }
 
 pub struct MenuOptions {
@@ -328,6 +386,7 @@ fn pause_menu(
     asset_server: Res<AssetServer>,
     audio: Res<Audio>,
     menu_options: Res<MenuOptions>,
+    history: Res<StateHistory>,
 ) {
     let button_click = asset_server.load("audio/sounds/click.mp3");
     for (interaction, mut material, children) in interaction_query.iter_mut() {
@@ -341,6 +400,7 @@ fn pause_menu(
                 } else if text.value == menu_options.pause[1].to_string() {
                     state.set_next(AppState::SettingsMenu).unwrap()
                 } else if text.value == menu_options.pause[2].to_string() {
+                    // previous menu
                     state.set_next(AppState::MainMenu).unwrap()
                 } else if text.value == menu_options.pause[3].to_string() {
                     app_exit_events.send(AppExit);
