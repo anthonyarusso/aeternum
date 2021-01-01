@@ -67,6 +67,7 @@ impl StateHistory {
         self.count = 0;
     }
     fn pop(&mut self, count: usize) {
+        // wait... I dont need this function. :/
         if self.count - count <= 0 {
             self.clear();
         } else {
@@ -78,14 +79,26 @@ impl StateHistory {
             reinserts the non-popped values at the 'front' of the
             history array starting at index 0 */
             let mut j = 0;
-            for i in (count + 1)..self.count {
+            for i in (count+1)..self.count {
                 self.history[j] = temp_history[i];
                 j += 1;
             }
             self.count -= count;
         }
     }
-    fn prev(&self, steps: usize) -> AppState {
+    fn push(&mut self, state: AppState) {
+        self.history[0] = state;
+        let temp_history = self.history.clone();
+        // shift history values down
+        for i in 0..(HISTORY_SIZE-1) {
+            self.history[i+1] = temp_history[i];
+        }
+        if self.count < 5 {
+            self.count += 1;
+        }
+    }
+    fn go_back(&self, steps: usize) -> AppState {
+        // this function also needs to modify history
         if self.count == 0 {
             eprintln!("StateHistory.prev() Error: No previous history.");
             AppState::MainMenu
@@ -97,6 +110,19 @@ impl StateHistory {
         } else {
             eprintln!("StateHistory.prev() Error: History does not exist.");
             AppState::MainMenu
+        }
+    }
+    fn prev(&mut self) -> AppState {
+        if self.count <= 0 {
+            eprintln!("StateHistory.prev() Error: No previous history.");
+            AppState::MainMenu
+        } else {
+            let temp_history = self.history.clone();
+            // shift up the history values by one
+            for i in 0..(HISTORY_SIZE-1) {
+                self.history[i] = temp_history[i+1];
+            }
+            temp_history[0]
         }
     }
 }
@@ -455,15 +481,29 @@ fn settings_menu(
     }
 }
 
-fn cleanup_settings_menu(commands: &mut Commands, menu_data: Res<SettingsMenuEntity>) {
+fn cleanup_settings_menu(
+    commands: &mut Commands,
+    menu_data: Res<SettingsMenuEntity>,
+    mut history: ResMut<StateHistory>,
+) {
+    history.push(AppState::SettingsMenu);
     commands.despawn_recursive(menu_data.main_entity);
 }
 
-fn cleanup_pause_menu(commands: &mut Commands, menu_data: Res<PauseMenuEntity>) {
+fn cleanup_pause_menu(
+    commands: &mut Commands,
+    menu_data: Res<PauseMenuEntity>,
+    mut history: ResMut<StateHistory>,
+) {
+    history.push(AppState::PauseMenu);
     commands.despawn_recursive(menu_data.main_entity);
 }
 
-fn cleanup_menu(commands: &mut Commands, menu_data: Res<MainMenuEntity>) {
+fn cleanup_menu(commands: &mut Commands,
+    menu_data: Res<MainMenuEntity>,
+    mut history: ResMut<StateHistory>,
+) {
+    history.push(AppState::MainMenu);
     commands.despawn_recursive(menu_data.main_entity);
 }
 
