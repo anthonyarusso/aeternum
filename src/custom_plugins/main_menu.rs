@@ -78,26 +78,6 @@ impl StateHistory {
         }
         self.count = 0;
     }
-    fn pop(&mut self, count: usize) {
-        // wait... I dont need this function. :/
-        if self.count - count <= 0 {
-            self.clear();
-        } else {
-            let temp_history = self.history.clone();
-            for i in 0..count {
-                self.history[i] = AppState::MainMenu;
-            }
-            /* the following copies the history before the pop and
-            reinserts the non-popped values at the 'front' of the
-            history array starting at index 0 */
-            let mut j = 0;
-            for i in (count+1)..self.count {
-                self.history[j] = temp_history[i];
-                j += 1;
-            }
-            self.count -= count;
-        }
-    }
     fn push(&mut self, state: AppState) {
         self.history[0] = state;
         let temp_history = self.history.clone();
@@ -107,21 +87,6 @@ impl StateHistory {
         }
         if self.count < 5 {
             self.count += 1;
-        }
-    }
-    fn go_back(&self, steps: usize) -> AppState {
-        // this function also needs to modify history
-        if self.count == 0 {
-            eprintln!("StateHistory.prev() Error: No previous history.");
-            AppState::MainMenu
-        } else if steps == 0 {
-            eprintln!("StateHistory.prev() Error: Zero is an invalid input.");
-            AppState::MainMenu
-        } else if steps <= self.count {
-            self.history[steps]
-        } else {
-            eprintln!("StateHistory.prev() Error: History does not exist.");
-            AppState::MainMenu
         }
     }
     fn prev(&mut self) -> AppState {
