@@ -5,8 +5,6 @@ use bevy::{
     prelude:: *,
 };
 
-use std::fmt;
-
 use crate::custom_resources::materials;
 
 pub struct MainMenuPlugin;
@@ -225,10 +223,15 @@ fn setup_menu(
     commands
         .spawn(NodeBundle {
             style: Style {
-                size: Size::new(Val::Percent(80.0), Val::Percent(80.0)),
-                margin: Rect::all(Val::Auto),
+                size: Size::new(Val::Percent(40.0), Val::Percent(60.0)),
+                position_type: PositionType::Absolute,
+                position: Rect {
+                    left: Val::Px(0.0),
+                    bottom: Val::Px(0.0),
+                    ..Default::default()
+                },
                 justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
+                align_items: AlignItems::FlexStart,
                 flex_direction: FlexDirection::ColumnReverse,
                 ..Default::default()
             },
@@ -238,8 +241,8 @@ fn setup_menu(
             for i in 0..menu_options.main.len() {
                 parent.spawn(ButtonBundle {
                     style: Style {
-                        size: Size::new(Val::Px(250.0), Val::Px(65.0)),
-                        margin: Rect::all(Val::Px(25.0)),
+                        size: Size::new(Val::Px(250.0), Val::Px(80.0)),
+                        margin: Rect::all(Val::Px(15.0)),
                         justify_content: JustifyContent::Center,
                         align_items:AlignItems::Center,
                         ..Default::default()
