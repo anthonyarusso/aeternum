@@ -1,6 +1,7 @@
 /* A custom plugin to implement menu screens within Bevy */
 use bevy::{
     app::AppExit,
+    audio,
     prelude:: *,
 };
 
@@ -11,6 +12,7 @@ pub struct MainMenuPlugin;
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app
+            .add_plugin(audio::AudioPlugin)
             .add_resource(State::new(AppState::Menu))
             .init_resource::<materials::ButtonMaterials>()
             .add_stage_after(stage::UPDATE, STAGE, StateStage::<AppState>::default())
@@ -44,7 +46,9 @@ fn setup_menu(
     commands: &mut Commands,
     asset_server: Res<AssetServer>,
     button_materials: Res<materials::ButtonMaterials>,
+    audio: Res<Audio>,
 ) {
+    let main_menu_music = asset_server.load("audio/music/Sad_Italian_Song.mp3");
     commands
         .spawn(CameraUiBundle::default());
     commands
@@ -114,6 +118,7 @@ fn setup_menu(
     commands.insert_resource(MainMenuEntity {
         main_entity: commands.current_entity().unwrap(),
     });
+    audio.play(main_menu_music.clone());
 }
 
 fn menu(
@@ -125,12 +130,16 @@ fn menu(
     >,
     mut text_query: Query<&mut Text>,
     mut app_exit_events: ResMut<Events<AppExit>>,
+    asset_server: Res<AssetServer>,
+    audio: Res<Audio>,
 ) {
+    let button_click = asset_server.load("audio/sounds/click.mp3");
     for (interaction, mut material, children) in interaction_query.iter_mut() {
         let text = text_query.get_mut(children[0]).unwrap();
         match *interaction {
             Interaction::Clicked => {
                 *material = button_materials.pressed.clone();
+                audio.play(button_click.clone());
                 if text.value == "Resume Game".to_string() {
                     state.set_next(AppState::InGame).unwrap();
                 } else if text.value == "Exit Game".to_string() {
