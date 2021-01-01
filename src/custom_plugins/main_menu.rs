@@ -16,6 +16,7 @@ impl Plugin for MainMenuPlugin {
             .add_resource(State::new(AppState::Menu))
             .init_resource::<materials::ButtonMaterials>()
             .init_resource::<GlobalCounters>()
+            .init_resource::<MenuOptions>()
             .add_stage_after(stage::UPDATE, STAGE, StateStage::<AppState>::default())
             .on_state_enter(STAGE, AppState::Menu, setup_menu.system())
             .on_state_update(STAGE, AppState::Menu, menu.system())
@@ -38,12 +39,38 @@ enum AppState {
     InGame,
 }
 
+pub struct MenuOptions {
+    main: [&'static str; 4],
+    settings: [&'static str; 6],
+}
+
+impl FromResources for MenuOptions {
+    fn from_resources(_resources: &Resources) -> Self {
+        MenuOptions {
+            main: [
+                "Resume Game",
+                "Settings",
+                "Main Menu",
+                "Exit Game",
+            ],
+            settings: [
+                "Accessibility",
+                "Audio",
+                "Controls",
+                "Graphics",
+                "Language",
+                "Previous Menu",
+            ]
+        }
+    }
+}
+
 pub struct GlobalCounters {
     audio_counter: u32,
 }
 
 impl FromResources for GlobalCounters {
-    fn from_resources(resources: &Resources) -> Self {
+    fn from_resources(_resources: &Resources) -> Self {
         GlobalCounters {
             audio_counter: 0,
         }
@@ -68,6 +95,7 @@ fn setup_menu(
     button_materials: Res<materials::ButtonMaterials>,
     audio: Res<Audio>,
     mut counter_res: ResMut<GlobalCounters>,
+    menu_options: Res<MenuOptions>,
 ) {
     let main_menu_music = asset_server.load("audio/music/Sad_Italian_Song.mp3");
     commands
@@ -85,106 +113,33 @@ fn setup_menu(
             ..Default::default()
         })
         .with_children(|parent| {
-            parent.spawn(ButtonBundle {
-                style: Style {
-                    size: Size::new(Val::Px(250.0), Val::Px(65.0)),
-                    margin: Rect::all(Val::Px(25.0)),
-                    justify_content: JustifyContent::Center,
-                    align_items:AlignItems::Center,
-                    ..Default::default()
-                },
-                material: button_materials.normal.clone(),
-                ..Default::default()
-            })
-            .with_children(|parent| {
-                parent.spawn(TextBundle {
-                    text: Text {
-                        value: "Resume Game".to_string(),
-                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                        style: TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(1.0, 1.0, 1.0),
-                            ..Default::default()
-                        },
+            for i in 0..menu_options.main.len() {
+                parent.spawn(ButtonBundle {
+                    style: Style {
+                        size: Size::new(Val::Px(250.0), Val::Px(65.0)),
+                        margin: Rect::all(Val::Px(25.0)),
+                        justify_content: JustifyContent::Center,
+                        align_items:AlignItems::Center,
+                        ..Default::default()
                     },
+                    material: button_materials.normal.clone(),
                     ..Default::default()
-                });
-            });
-            parent.spawn(ButtonBundle {
-                style: Style {
-                    size: Size::new(Val::Px(250.0), Val::Px(65.0)),
-                    margin: Rect::all(Val::Px(25.0)),
-                    justify_content: JustifyContent::Center,
-                    align_items:AlignItems::Center,
-                    ..Default::default()
-                },
-                material: button_materials.normal.clone(),
-                ..Default::default()
-            })
-            .with_children(|parent| {
-                parent.spawn(TextBundle {
-                    text: Text {
-                        value: "Mama mia!".to_string(),
-                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                        style: TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(1.0, 1.0, 1.0),
-                            ..Default::default()
+                })
+                .with_children(|parent| {
+                    parent.spawn(TextBundle {
+                        text: Text {
+                            value: menu_options.main[i].to_string(),
+                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                            style: TextStyle {
+                                font_size: 40.0,
+                                color: Color::rgb(1.0, 1.0, 1.0),
+                                ..Default::default()
+                            },
                         },
-                    },
-                    ..Default::default()
-                });
-            });
-            parent.spawn(ButtonBundle {
-                style: Style {
-                    size: Size::new(Val::Px(250.0), Val::Px(65.0)),
-                    margin: Rect::all(Val::Px(25.0)),
-                    justify_content: JustifyContent::Center,
-                    align_items:AlignItems::Center,
-                    ..Default::default()
-                },
-                material: button_materials.normal.clone(),
-                ..Default::default()
-            })
-            .with_children(|parent| {
-                parent.spawn(TextBundle {
-                    text: Text {
-                        value: "Settings".to_string(),
-                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                        style: TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(1.0, 1.0, 1.0),
-                            ..Default::default()
-                        },
-                    },
-                    ..Default::default()
-                });
-            });
-            parent.spawn(ButtonBundle {
-                style: Style {
-                    size: Size::new(Val::Px(250.0), Val::Px(65.0)),
-                    margin: Rect::all(Val::Px(25.0)),
-                    justify_content: JustifyContent::Center,
-                    align_items:AlignItems::Center,
-                    ..Default::default()
-                },
-                material: button_materials.normal.clone(),
-                ..Default::default()
-            })
-            .with_children(|parent| {
-                parent.spawn(TextBundle {
-                    text: Text {
-                        value: "Exit Game".to_string(),
-                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                        style: TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(1.0, 1.0, 1.0),
-                            ..Default::default()
-                        },
-                    },
-                    ..Default::default()
-                });
-            });
+                        ..Default::default()
+                    });
+                }); 
+            } // end for-loop
         });
     commands.insert_resource(MainMenuEntity {
         main_entity: commands.current_entity().unwrap(),
