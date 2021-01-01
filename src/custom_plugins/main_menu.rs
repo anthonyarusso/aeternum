@@ -15,6 +15,7 @@ impl Plugin for MainMenuPlugin {
             .add_plugin(audio::AudioPlugin)
             .add_resource(State::new(AppState::Menu))
             .init_resource::<materials::ButtonMaterials>()
+            .init_resource::<GlobalCounters>()
             .add_stage_after(stage::UPDATE, STAGE, StateStage::<AppState>::default())
             .on_state_enter(STAGE, AppState::Menu, setup_menu.system())
             .on_state_update(STAGE, AppState::Menu, menu.system())
@@ -37,6 +38,18 @@ enum AppState {
     InGame,
 }
 
+pub struct GlobalCounters {
+    audio_counter: u32,
+}
+
+impl FromResources for GlobalCounters {
+    fn from_resources(resources: &Resources) -> Self {
+        GlobalCounters {
+            audio_counter: 0,
+        }
+    }
+}
+
 struct SettingsMenuEntity {
     main_entity: Entity,
 }
@@ -54,6 +67,7 @@ fn setup_menu(
     asset_server: Res<AssetServer>,
     button_materials: Res<materials::ButtonMaterials>,
     audio: Res<Audio>,
+    mut counter_res: ResMut<GlobalCounters>,
 ) {
     let main_menu_music = asset_server.load("audio/music/Sad_Italian_Song.mp3");
     commands
@@ -175,7 +189,10 @@ fn setup_menu(
     commands.insert_resource(MainMenuEntity {
         main_entity: commands.current_entity().unwrap(),
     });
-    audio.play(main_menu_music.clone());
+    if counter_res.audio_counter == 0 {
+        audio.play(main_menu_music.clone());
+        counter_res.audio_counter += 1;
+    }
 }
 
 fn setup_settings_menu(
@@ -335,7 +352,6 @@ fn settings_menu(
                 *material = button_materials.pressed.clone();
                 audio.play(button_click.clone());
                 if text.value == "Settings".to_string() {
-                    println!("He has been cheated");
                     state.set_next(AppState::InGame).unwrap();
                 } else if text.value == "Main Menu".to_string() {
                     state.set_next(AppState::Menu).unwrap();
