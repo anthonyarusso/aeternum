@@ -38,7 +38,7 @@ impl Plugin for MainMenuPlugin {
 
 const STAGE: &str = "app_state";
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 enum AppState {
     MainMenu,
     PauseMenu,
@@ -59,15 +59,6 @@ impl FromResources for StateHistory {
             history: [AppState::MainMenu; HISTORY_SIZE],
             count: 0,
         }
-    }
-}
-
-impl fmt::Debug for StateHistory {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("StateHistory")
-         .field("history", &self.history)
-         .field("count", &self.count)
-         .finish()
     }
 }
 
