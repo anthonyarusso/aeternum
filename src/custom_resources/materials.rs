@@ -35,7 +35,7 @@ impl FromResources for BackgroundMaterials {
             alpha: materials.add(Color::NONE.into()),
             alpha_red: materials.add(Color::rgba(255.0, 0.0, 0.0, 0.6).into()),
             image_main: materials
-                .add(asset_server.load("images/main_menu/ancient_rome.png").into()),
+                .add(asset_server.load("images/main_menu/ancient_rome_trees.png").into()),
         }
     }
 }

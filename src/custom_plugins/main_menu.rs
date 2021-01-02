@@ -244,6 +244,30 @@ fn setup_menu(
                 material: background_materials.image_main.clone(),
                 ..Default::default()
             });
+            parent.spawn( TextBundle {
+                text: Text {
+                    value: "Aeternum".to_string(),
+                    font: asset_server.load("fonts/TimesNewRoman.ttf"),
+                    style: TextStyle {
+                        font_size: 124.0,
+                        color: Color::GOLD,
+                        alignment: TextAlignment {
+                            vertical: VerticalAlign::Center,
+                            horizontal: HorizontalAlign::Center,
+                        }
+                    },
+                    ..Default::default()
+                },
+                style: Style {
+                    position_type: PositionType::Absolute,
+                    position: Rect {
+                        top: Val::Px(0.0),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+                ..Default::default()
+            });
             parent.spawn( NodeBundle {
             style: Style {
                 size: Size::new(Val::Percent(40.0), Val::Percent(60.0)),
