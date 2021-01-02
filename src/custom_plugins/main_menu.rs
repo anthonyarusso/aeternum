@@ -15,6 +15,7 @@ impl Plugin for MainMenuPlugin {
             .add_plugin(audio::AudioPlugin)
             .add_resource(State::new(AppState::MainMenu))
             .init_resource::<materials::ButtonMaterials>()
+            .init_resource::<materials::BackgroundMaterials>()
             .init_resource::<GlobalCounters>()
             .init_resource::<MenuOptions>()
             .init_resource::<StateHistory>()
@@ -159,6 +160,7 @@ fn setup_pause_menu(
     commands: &mut Commands,
     asset_server: Res<AssetServer>,
     button_materials: Res<materials::ButtonMaterials>,
+    background_materials: Res<materials::BackgroundMaterials>,
     menu_options: Res<MenuOptions>,
 ) {
     commands
@@ -173,6 +175,7 @@ fn setup_pause_menu(
                 flex_direction: FlexDirection::ColumnReverse,
                 ..Default::default()
             },
+            material: background_materials.alpha.clone(),
             ..Default::default()
         })
         .with_children(|parent| {
@@ -213,6 +216,7 @@ fn setup_menu(
     commands: &mut Commands,
     asset_server: Res<AssetServer>,
     button_materials: Res<materials::ButtonMaterials>,
+    background_materials: Res<materials::BackgroundMaterials>,
     audio: Res<Audio>,
     mut counter_res: ResMut<GlobalCounters>,
     menu_options: Res<MenuOptions>,
@@ -223,20 +227,34 @@ fn setup_menu(
     commands
         .spawn(NodeBundle {
             style: Style {
-                size: Size::new(Val::Percent(40.0), Val::Percent(60.0)),
+                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
                 position_type: PositionType::Absolute,
-                position: Rect {
-                    left: Val::Px(0.0),
-                    bottom: Val::Px(0.0),
+                ..Default::default()
+            },
+            material: background_materials.alpha.clone(),
+            ..Default::default()
+        })
+        .with_children(|parent| {
+            parent.spawn(ImageBundle {
+                style: Style {
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                    position_type: PositionType::Absolute,
                     ..Default::default()
                 },
+                material: background_materials.image_main.clone(),
+                ..Default::default()
+            });
+            parent.spawn( NodeBundle {
+            style: Style {
+                size: Size::new(Val::Percent(40.0), Val::Percent(60.0)),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::FlexStart,
                 flex_direction: FlexDirection::ColumnReverse,
                 ..Default::default()
             },
+            material: background_materials.alpha.clone(),
             ..Default::default()
-        })
+            })
         .with_children(|parent| {
             for i in 0..menu_options.main.len() {
                 parent.spawn(ButtonBundle {
@@ -266,6 +284,7 @@ fn setup_menu(
                 }); 
             } // end for-loop
         });
+    });
     commands.insert_resource(MainMenuEntity {
         main_entity: commands.current_entity().unwrap(),
     });
